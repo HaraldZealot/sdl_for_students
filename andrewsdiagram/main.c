@@ -11,7 +11,20 @@ typedef struct AndrewsPoint_
 {
     double *coordinates;
     int size;
+    int colorIndex;
 } AndrewsPoint;
+
+const int colors[6][3] =
+{
+    {0, 0, 0x7f},
+    {0x7f, 0, 0},
+    {0, 0x7f, 0},
+    {0x7f, 0x7f, 0},
+    {0, 0x7f, 0x7f},
+    {0x7f, 0, 0x7f},
+};
+
+bool parseColor = false;
 
 char *delimiters;
 
@@ -28,9 +41,9 @@ void freeData(AndrewsPoint **points, int *size);
 
 int main(int argc, char **argv)
 {
-    if(argc < 2 || argc > 3)
+    if(argc < 2 || argc > 4)
     {
-        fprintf(stderr, "Invalid count of arguments (only 2 or 3 possible)\n");
+        fprintf(stderr, "Invalid count of arguments (only 2 or 4 possible)\n");
         exit(1);
     }
 
@@ -38,7 +51,7 @@ int main(int argc, char **argv)
     char *fileName;
     char delim[20] = " ";
 
-    if(argc == 3)
+    if(argc >= 3)
     {
         if(argv[1][0] != '-' || argv[1][1] != 'd')
         {
@@ -47,8 +60,14 @@ int main(int argc, char **argv)
         }
 
         strcpy(delim, argv[1] + 2);
-        fileName = argv[2];
 
+        if(strcmp("-c", argv[2]) == 0)
+        {
+            parseColor = true;
+            fileName = argv[3];
+        }
+        else
+            fileName = argv[2];
     }
     else
         fileName = argv[1];
@@ -109,19 +128,21 @@ int main(int argc, char **argv)
     double scaleX = screenWidth / 2 / acos(-1.0);
     double scaleY = screenHeight / 2 / (0.1 + maxY);
 
+    SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(ren, 0xFF, 0xFF, 0xFF, 0xFF);
+    SDL_RenderClear(ren);
+
+
+    for(int i = 0; i < size; ++i)
+        drawAndrewsPoint(ren, points[i], scaleX, scaleY);
+
     while(!quit)
     {
         while(SDL_PollEvent(&e) != 0) {     //User requests quit
             if(e.type == SDL_QUIT) { quit = true; }
         }
 
-        SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_BLEND);
-        SDL_SetRenderDrawColor(ren, 0xFF, 0xFF, 0xFF, 0xFF);
-        SDL_RenderClear(ren);
 
-
-        for(int i = 0; i < 1; ++i)
-            drawAndrewsPoint(ren, points[i], scaleX, scaleY);
 
         SDL_RenderPresent(ren);
     }
@@ -141,21 +162,17 @@ void drawAndrewsPoint(SDL_Renderer *ren, AndrewsPoint point, double scaleX, doub
         double x0 = transformScreenToX(i, scaleX);
         double y0 = transformYToScreen(calcYforAndrewsPoint(point, x0), scaleY);
         int approxY = round(y0);
-        double dv = calcDerivforAndrewsPoint(point, x0);
+        double dv = scaleY * calcDerivforAndrewsPoint(point, x0) / scaleX;
         double denominator = sqrt(1.0 + dv * dv);
 
         for(int j = approxY - 30; j <= approxY + 30; ++j)
         {
             double y = j;
-            int alpha = 0xFF * belong((y - y0) / denominator);
-            printf("%.2f %d\n",y, alpha);
-            SDL_SetRenderDrawColor(ren, 0x00, 0x00, 0x7F, alpha);
+            int alpha = 0x17 * belong((y - y0) / denominator);
+            SDL_SetRenderDrawColor(ren, colors[point.colorIndex][0], colors[point.colorIndex][1], colors[point.colorIndex][2],
+                                   alpha);
             SDL_RenderDrawPoint(ren, i, j);
         }
-        printf("\n");
-
-        //,
-        //(i + 2)/scale, transformYToScreen(calcYforAndrewsPoint(point, transformScreenToX(i + 2, scaleX)/scale), scaleY));
     }
 }
 
@@ -251,6 +268,7 @@ void readData(FILE *file, AndrewsPoint **points, int *size)
     {
         (*points)[i].coordinates = (double *)malloc(colls * sizeof(double));
         (*points)[i].size = colls;
+        (*points)[i].colorIndex = 0;
 
         for(int j = 0; j < colls; ++j)
         {
@@ -269,6 +287,18 @@ void readData(FILE *file, AndrewsPoint **points, int *size)
         char buf[1024];
         fgets(buf, 1024, file);
         char *token = strtok(buf, delimiters);
+
+        if(parseColor)
+        {
+            char *end;
+            int val = strtol(token, &end, 10);
+
+            if(end != token)
+                (*points)[i].colorIndex = val;
+
+            token = strtok(NULL, delimiters);
+        }
+
         int currentColls = 0;
 
         while(token)
@@ -325,10 +355,10 @@ double belong(double x)
     double posX = fabs(x);
     double result;
 
-    if(posX <= 1.0)
+    if(posX <= 1)
         result = 1.0;
-    else if(posX <= 8.0)
-        result = (8.0 - posX) / 7.0;
+    else if(posX <= 4)
+        result = (4 - posX) / 3;
     else
         result = 0.0;
 
