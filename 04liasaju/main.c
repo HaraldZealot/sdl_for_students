@@ -36,10 +36,29 @@ int main()
 
     int count = 2048;
 
+    int m;
+
+    int phi =0;
+    double PI=acos(-1.0);
+
     while(!quit)
     {
         while(SDL_PollEvent(&e) != 0) {     //User requests quit
             if(e.type == SDL_QUIT) { quit = true; }
+            if(e.type == SDL_KEYDOWN)
+            {
+                SDL_KeyboardEvent kEvent = e.key;
+
+                if(kEvent.keysym.scancode == SDL_SCANCODE_A)
+                {
+                    ++m;
+                }
+
+                if(kEvent.keysym.scancode == SDL_SCANCODE_D)
+                {
+                    --m;
+                }
+            }
         }
 
         //Clear screen
@@ -47,21 +66,25 @@ int main()
         //SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_BLEND);
         SDL_SetRenderDrawColor(ren, 0xFF, 0xFF, 0xFF, 0xFF);
         SDL_RenderClear(ren);
-        SDL_SetRenderDrawColor(ren, 0x00, 0x00, 0x7F, 0x7F);
 
-        double dt = acos(-1) / 1024.0;
+
+        double dt = PI/ 1024.0;
+
+
 
         for(int i = 0; i <= count; ++i)
         {
+            SDL_SetRenderDrawColor(ren, i&0xFF, (i&0xFF00)>>8, 0x7F, 0x7F);
             double t = i * acos(-1) / 1024.0;
             SDL_RenderDrawLine(ren,
-                               screenWidth / 2 + 0.375 * screenWidth * cos(3*t),
-                               screenHeight / 2 - 0.375 * screenHeight * sin(2*t),
-                               screenWidth / 2 + 0.375 * screenWidth * cos(3*(t + dt)),
-                               screenHeight / 2 - 0.375 * screenHeight * sin(2*(t + dt)));
+                               screenWidth / 2 + 0.375 * screenWidth * cos(m*t+PI*phi/180.0),
+                               screenHeight / 2 - 0.375 * screenHeight * sin(2*t+PI*phi/180.0),
+                               screenWidth / 2 + 0.375 * screenWidth * cos(m*(t + dt)+PI*phi/180.0),
+                               screenHeight / 2 - 0.375 * screenHeight * sin(2*(t + dt)+PI*phi/180.0));
         }
 
         SDL_RenderPresent(ren);
+        ++phi;
     }
 
     SDL_DestroyRenderer(ren);

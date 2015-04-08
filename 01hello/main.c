@@ -4,12 +4,14 @@
 
 int main()
 {
+    system("pwd");
     if(SDL_Init(SDL_INIT_VIDEO) != 0) {
         fprintf(stderr, "SDL_Init Error: %s\n", SDL_GetError());
         exit(1);
     }
 
-    SDL_Window *win = SDL_CreateWindow("Hello World!", 100, 100, 640, 480, SDL_WINDOW_SHOWN);
+    SDL_Window *win = SDL_CreateWindow("Hello World!", 100, 100,
+                                       640, 480, SDL_WINDOW_SHOWN);
 
     if(win == NULL)
     {
@@ -17,11 +19,14 @@ int main()
         exit(1);
     }
 
-    SDL_Renderer *ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    SDL_Renderer *ren = SDL_CreateRenderer(win, -1,
+                                           SDL_RENDERER_ACCELERATED
+                                           | SDL_RENDERER_PRESENTVSYNC);
 
     if(ren == NULL) {
         SDL_DestroyWindow(win);
-        fprintf(stderr, "SDL_CreateRenderer Error: %s\n", SDL_GetError());
+        fprintf(stderr, "SDL_CreateRenderer Error: %s\n",
+                SDL_GetError());
         SDL_Quit();
         exit(1);
     }
@@ -42,7 +47,8 @@ int main()
     if(tex == NULL) {
         SDL_DestroyRenderer(ren);
         SDL_DestroyWindow(win);
-        fprintf(stderr, "SDL_CreateTextureFromSurface Error: %s\n", SDL_GetError());
+        fprintf(stderr, "SDL_CreateTextureFromSurface Error: %s\n",
+                SDL_GetError());
         SDL_Quit();
         exit(1);
     }
