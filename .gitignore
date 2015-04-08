@@ -7,3 +7,6 @@ obj/
 *.obj
 *.[oa]
 .directory
+*[Dd]ebug*/
+*[Rr]elease*/
+*.user
