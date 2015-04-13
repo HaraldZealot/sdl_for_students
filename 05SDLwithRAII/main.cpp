@@ -10,7 +10,7 @@ int main()
     {
         SDLWrapper sdlWrapper;
         SDLWindowWrapper win("Hello RAII!", 100, 100, 640, 480, SDL_WINDOW_SHOWN);
-        SDLRendererWrapper ren(win.win(), -1, SDL_RENDERER_ACCELERATED
+        SDLRendererWrapper ren(nullptr, -1, SDL_RENDERER_ACCELERATED
                                | SDL_RENDERER_PRESENTVSYNC);
 
         SDL_RenderClear(ren.ren());
